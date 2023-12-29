@@ -21,13 +21,13 @@ string HashPassFuc(string pass) {
 bool checkPassword(string pass , string passcheck) {
     SHA256 sha;
     sha.update(pass);
-    std::array<uint8_t, 32> digest = sha.digest();
+    array<uint8_t, 32> digest = sha.digest();
     string passhash = SHA256::toString(digest);
-
-
     string rubbish = passcheck.substr(0, 2);
     int location = stoi(rubbish) - 11;
     string passlocal = passcheck.substr(2 + location, passcheck.length());
+
+
     if (passhash.compare(passlocal) == 0) {
         return true;
     }
@@ -101,6 +101,47 @@ void formatVolume(const string& volumeName, VolumeSys& vls) {
     else
     {
         cout << "Không thể mở volume/ volume không tồn tại." << endl;
+    }
+}
+
+
+bool OpenVolume(const string& volumeName, uint64_t VolumeSize) {
+    fstream f(volumeName);
+    VolumeSys vls = VolumeSys(VolumeSize);
+    //Đọc dữ liệu đầu vào lưu vào vls 
+
+    vls.ReadVolume(f);
+
+    int maxAttempts = 5; // Số lần nhập sai tối đa
+    int currentAttempts = 0; // Số lần nhập sai hiện tại
+    int waitTime = 5; // Thời gian đợi ban đầu sau lần nhập sai đầu (5 giây)
+
+    while (currentAttempts < maxAttempts) {
+        string inputPassword;
+        cout << "Input Password: ";
+        cin >> inputPassword;
+
+        if (checkPassword(inputPassword, vls.getPass())) {
+            std::cout << "Open file sucessfully!\n";
+            return true;
+        }
+        else {
+            currentAttempts++;
+            if (currentAttempts < maxAttempts) {
+                std::cout << "Pass error.Please re-enter your password. \n";
+                for (int i = waitTime; i > 0; i--) {
+                    cout << "Waiting " << i << " seconds...\n";
+                    this_thread::sleep_for(std::chrono::seconds(1));
+                }
+                waitTime *= 2; // Tăng thời gian đợi sau mỗi lần nhập sai lên gấp đôi
+
+            }
+            else {
+                std::cout << "The number of incorrect entries is too many. Try again later.\n";
+            }
+        }
+
+
     }
 }
 

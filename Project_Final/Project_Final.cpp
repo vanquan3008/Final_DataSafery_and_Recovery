@@ -9,27 +9,16 @@
 using namespace std;
 int main()
 {
-	/*uint64_t volumeSize = 1024 * 1024;
+	uint64_t volumeSize = 1024 * 1024;
 	VolumeSys vls = VolumeSys(volumeSize);
 
 	string name;
 	cout << "Nhập tên file : ";
 	cin >> name;
 	if (createVolume(name, (volumeSize * 10)) == true) {
-
-
 		formatVolume(name, vls);
 	}
-	VolumeSys vlss = VolumeSys(volumeSize);
-	fstream f(name);
-	vlss.ReadVolume(f);
-	cout << vlss.getPasssize() << endl;
-	cout << "Nhập mật khẩu cần check : " << endl;
-	string nn;
-	cin >> nn;
-	cout<<checkPassword(nn, vlss.getPass());*/
-
-	decodeTime(formatTimeNow());
+	OpenVolume(name, volumeSize * 10);
 	return 0;
 
 
