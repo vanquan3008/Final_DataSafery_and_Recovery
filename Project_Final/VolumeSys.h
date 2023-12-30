@@ -14,6 +14,7 @@ private:
     uint16_t passsize;
     string password;
 public:
+    VolumeSys();
     VolumeSys(uint64_t volumeSize);
     void setPassword(string pass);
     void ReadVolume(fstream& file);
@@ -23,6 +24,9 @@ public:
     }
     uint16_t getPasssize() {
         return this->passsize;
+    }
+    uint64_t getVolume() {
+        return this->volumeSize;
     }
 };
 

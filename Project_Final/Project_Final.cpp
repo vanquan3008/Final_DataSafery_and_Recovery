@@ -10,14 +10,21 @@ using namespace std;
 int main()
 {
 	uint64_t volumeSize = 1024 * 1024;
-	VolumeSys vls = VolumeSys(volumeSize);
+	VolumeSys vls = VolumeSys(volumeSize*10);
 
 	string name;
 	cout << "Nhập tên file : ";
 	cin >> name;
-	if (createVolume(name, (volumeSize * 10)) == true) {
+	/*if (createVolume(name, (volumeSize * 10)) == true) {
 		formatVolume(name, vls);
-	}
+	}*/
+	//cout << "Pass : " << vls.getPass() << endl;
+	//VolumeSys vlsx;
+	//fstream f(name);
+	//vlsx.ReadVolume(f);
+	//cout << "Pass of sys : " << vlsx.getPass();
+
+	resetPass(name);
 	OpenVolume(name, volumeSize * 10);
 	return 0;
 

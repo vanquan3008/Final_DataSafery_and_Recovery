@@ -15,6 +15,7 @@ void Student::InputStudent() {
 	this->timeAt = formatTimeNow();
 	cout << "Age : ";
 	cin >> this->age;
+
 	//Hash Phone  and CCCD
 	SHA256 sha;
 	string phone, CCCD;
@@ -23,9 +24,11 @@ void Student::InputStudent() {
 	sha.update(phone);
 	std::array<uint8_t, 32> digest = sha.digest();
 	string phoneHash = SHA256::toString(digest);
-
-
+	/*this->phone = phoneHash;
 
 	cout << "CCCD : ";
-	cin >> this->CCCD;
+	cin >> CCCD;
+	sha.update(CCCD);
+	std::array<uint8_t, 32> digest = sha.digest();
+	string CCCD = SHA256::toString(digest);*/
 }

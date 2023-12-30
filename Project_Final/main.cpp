@@ -26,9 +26,9 @@ bool checkPassword(string pass , string passcheck) {
     string rubbish = passcheck.substr(0, 2);
     int location = stoi(rubbish) - 11;
     string passlocal = passcheck.substr(2 + location, passcheck.length());
+    string passlocalconvert = passlocal.substr(0, 64);
 
-
-    if (passhash.compare(passlocal) == 0) {
+    if (passhash.compare(passlocalconvert) == 0) {
         return true;
     }
     else {
@@ -115,7 +115,6 @@ bool OpenVolume(const string& volumeName, uint64_t VolumeSize) {
     int maxAttempts = 5; // Số lần nhập sai tối đa
     int currentAttempts = 0; // Số lần nhập sai hiện tại
     int waitTime = 5; // Thời gian đợi ban đầu sau lần nhập sai đầu (5 giây)
-
     while (currentAttempts < maxAttempts) {
         string inputPassword;
         cout << "Input Password: ";
@@ -143,6 +142,64 @@ bool OpenVolume(const string& volumeName, uint64_t VolumeSize) {
 
 
     }
+}
+
+
+void changePass(string& filename) {
+    fstream f(filename);
+    VolumeSys vls;
+    string oldPass;
+    cout << "Input old pass : ";
+    cin >> oldPass;
+    vls.ReadVolume(f);
+    string newpass;
+    if (checkPassword(oldPass, vls.getPass())) {
+        //Check pass cu
+        cout << "Input new Pass can change : ";
+        cin >> newpass;
+        vls.setPassword(newpass);
+        f.seekp(0, ios::beg);
+        vls.WriteVolume(f);
+        cout << "Change password sucessfully." << endl;
+    }
+    else {
+        cout << "Your old password is incorrect ." << endl;
+    }
+}
+
+
+void resetPass(string& filename) {
+    srand(time(NULL));
+    int numbergacha;
+    int numbercheck;
+    while(true) {
+        numbergacha = rand() % 9000 + 1000;
+        cout << "Input number see this PC " << endl;
+        cout << "Number : " << numbergacha << endl;
+        cout << "Input number(Input 0 to exits resetpass) : ";
+        cin >> numbercheck;
+        if (numbercheck == numbergacha) {
+            cout << "Verify success fully";
+            break;
+        }
+        if (numbercheck == 0) {
+            cout << "Exit!";
+            return;
+        }
+
+    }
+
+    VolumeSys vls;
+    fstream f(filename);
+    vls.ReadVolume(f);
+    // Set pass "0000"
+    cout << "Password reset to 0000 ." << endl;
+    vls.setPassword("0000");
+
+    // Read volume sys
+    f.seekp(0, ios::beg);
+    vls.WriteVolume(f);
+    cout << "Password reset sucessfully ." << endl;
 }
 
 uint16_t formatDateNow() {

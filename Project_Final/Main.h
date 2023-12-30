@@ -19,6 +19,8 @@ bool checkPassword(string pass, string passcheck);
 bool createVolume(const string& volumeName, uint64_t volumeSize);
 void formatVolume(const string& volumeName, VolumeSys& vls);
 bool OpenVolume(const string& volumeName, uint64_t VolumeSize);
+void changePass(string& filename);
+void resetPass(string& filename);
 uint16_t formatDateNow();
 uint16_t formatTimeNow();
 void decodeDate(uint16_t encodedDate);
