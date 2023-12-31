@@ -43,19 +43,22 @@ void VolumeSys::ReadVolume(string fileName)
 
 void VolumeSys::WriteVolume(ofstream& file)
 {
+    // Ghi header
     file.write((char*)&this->volumeSize, sizeof(this->volumeSize));
     file.write((char*)&this->ArrStudentSize, sizeof(this->ArrStudentSize));
     file.write((char*)&this->ArrTeacherSize, sizeof(this->ArrTeacherSize));
     file.write((char*)&this->password, sizeof(this->password));
 
+    // Ghi Backup
+    file.write((char*)&this->volumeSize, sizeof(this->volumeSize));
+    file.write((char*)&this->ArrStudentSize, sizeof(this->ArrStudentSize));
+    file.write((char*)&this->ArrTeacherSize, sizeof(this->ArrTeacherSize));
+    file.write((char*)&this->password, sizeof(this->password));
+
+
     // Khởi tạo một khoảng byte rỗng giá trị 0
     // Vùng này dùng để chứa thông tin giáo viên khi thêm mới
     // Vùng lưu trữ chiếm 10% tổng kích thước volume
-    //size_t sizeInBytes = sizeof(Teacher) * 100;
-    //char* emptyBuffer = new char[sizeof(Teacher) * 100];
-    //std::fill(emptyBuffer, emptyBuffer + sizeInBytes, 0);
-    //file.write(emptyBuffer, sizeInBytes);
-
     size_t teacherDataSize = static_cast<size_t>(this->volumeSize * 0.1);
     char* emptyBuffer = new char[teacherDataSize];
     std::fill(emptyBuffer, emptyBuffer + teacherDataSize, 0);
@@ -95,8 +98,8 @@ void VolumeSys::ReadStudentList(string fileName) {
 
         // Skip header
         // Vùng lưu trữ thông tin sinh viên bắt đầu sau vùng dự trữ thông tin giáo viên
-        volumeFile.seekg(sizeof(uint64_t) + sizeof(uint16_t) * 2 + 
-            sizeof(this->password) + teacherDataSize, ios::beg);
+        volumeFile.seekg((sizeof(uint64_t) + sizeof(uint16_t) * 2 + 
+            sizeof(this->password))*2 + teacherDataSize, ios::beg);
 
         // Đọc thông tin sinh viên
         while (!volumeFile.eof()) {
@@ -145,8 +148,9 @@ void VolumeSys::DeleteOrRestoreStudent(string fileName, const char* studentId, b
         size_t teacherDataSize = static_cast<size_t>(this->volumeSize * 0.1);
 
         // Di chuyển tới offset bắt đầu của vùng lưu trữ dữ liệu sinh viên
-        volumeFile.seekg(sizeof(uint64_t) + sizeof(uint16_t) * 2 +
-            sizeof(this->password) + teacherDataSize, ios::beg);
+        volumeFile.seekg((sizeof(uint64_t) + sizeof(uint16_t) * 2 +
+            sizeof(this->password))*2
+            + teacherDataSize, ios::beg);
 
         // Tìm sinh viên bằng id
         while (!volumeFile.eof()) {
@@ -204,7 +208,8 @@ void VolumeSys::AddTeacher(Teacher& teacher, string fileName) {
 
     if (volumeFile.is_open()) {
         // Tính offset dựa trên số phần tử giáo viên
-        streampos position = sizeof(uint64_t) + sizeof(uint16_t) * 2 + sizeof(this->password)
+        streampos position = (sizeof(uint64_t) + sizeof(uint16_t) * 2 + 
+            sizeof(this->password)) * 2
             + sizeof(Teacher) * this->ArrTeacherSize;
 
         // Di chuyển đến offset
@@ -240,6 +245,13 @@ void VolumeSys::UpdateTeacherSize(string fileName) {
         // Thực hiện ghi đè số phần tử giáo viên mới
         file.write(reinterpret_cast<char*>(&this->ArrTeacherSize), sizeof(this->ArrTeacherSize));
 
+        // Update trên backup
+        offset = sizeof(uint64_t) + sizeof(uint16_t) * 2 +
+            sizeof(this->password)
+            + sizeof(uint64_t) + sizeof(uint16_t);
+        file.seekp(offset, std::ios::beg);
+        file.write(reinterpret_cast<char*>(&this->ArrTeacherSize), sizeof(this->ArrTeacherSize));
+
         file.close();
     }
 }
@@ -253,14 +265,15 @@ void VolumeSys::ReadTeacherList(string fileName) {
     if (volumeFile.is_open()) {
         // Tính offset kết thúc dữ liệu hiện có của giáo viên
         // Offset được tính dựa trên số phần tử giáo viên
-        volumeFile.seekg(sizeof(uint64_t) + sizeof(uint16_t) * 2
-            + sizeof(this->password) + sizeof(Teacher) * this->ArrTeacherSize, ios::beg);
+        volumeFile.seekg((sizeof(uint64_t) + sizeof(uint16_t) * 2
+            + sizeof(this->password))*2
+            + sizeof(Teacher) * this->ArrTeacherSize, ios::beg);
         streampos endPos = volumeFile.tellg();
 
         // Skip header
-        // Vùng thông tin giáo viên nằm sau header
-        volumeFile.seekg(sizeof(uint64_t) + sizeof(uint16_t) * 2
-            + sizeof(this->password), ios::beg);
+        // Vùng thông tin giáo viên nằm sau backup
+        volumeFile.seekg((sizeof(uint64_t) + sizeof(uint16_t) * 2
+            + sizeof(this->password))*2, ios::beg);
         streampos currentPos = volumeFile.tellg();
 
         // Đọc thông tin từng giáo viên
@@ -320,13 +333,14 @@ void VolumeSys::DeleteOrRestoreTeacher(string fileName, const char* teacherId, b
     if (volumeFile.is_open()) {
         // Tính offset kết thúc dữ liệu hiện có của giáo viên
         // Offset được tính dựa trên số phần tử giáo viên
-        volumeFile.seekg(sizeof(uint64_t) + sizeof(uint16_t) * 2
-            + sizeof(this->password) + sizeof(Teacher) * this->ArrTeacherSize, ios::beg);
+        volumeFile.seekg((sizeof(uint64_t) + sizeof(uint16_t) * 2
+            + sizeof(this->password))*2
+            + sizeof(Teacher) * this->ArrTeacherSize, ios::beg);
         streampos endPos = volumeFile.tellg();
 
         // Di chuyển đến offset bắt đầu vùng thông tin giáo viên
-        volumeFile.seekg(sizeof(uint64_t) + sizeof(uint16_t) * 2
-            + sizeof(this->password), ios::beg);
+        volumeFile.seekg((sizeof(uint64_t) + sizeof(uint16_t) * 2
+            + sizeof(this->password))*2, ios::beg);
         streampos currentPos = volumeFile.tellg();
 
         // Đọc thông tin từng giáo viên
@@ -392,9 +406,14 @@ void VolumeSys::UpdatePassword(string fileName) {
         // Di chuyển đến offset đó
         file.seekp(offset, std::ios::beg);
 
-        // Thực hiện ghi đè số phần tử giáo viên mới
+        // Thực hiện ghi đè password
         file.write(reinterpret_cast<char*>(&this->password), sizeof(this->password));
 
+        // Update backup password
+        offset = sizeof(uint64_t) + sizeof(uint16_t) * 2 +
+            sizeof(this->password) + sizeof(uint64_t) + sizeof(uint16_t) * 2;
+        file.seekp(offset, std::ios::beg);
+        file.write(reinterpret_cast<char*>(&this->password), sizeof(this->password));
         file.close();
     }
 }
@@ -410,8 +429,8 @@ void VolumeSys::DeleteStudentPermanently(string fileName, const char* studentId)
         size_t teacherDataSize = static_cast<size_t>(this->volumeSize * 0.1);
 
         // Di chuyển tới offset bắt đầu của vùng lưu trữ dữ liệu sinh viên
-        volumeFile.seekg(sizeof(uint64_t) + sizeof(uint16_t) * 2 +
-            sizeof(this->password) + teacherDataSize, ios::beg);
+        volumeFile.seekg((sizeof(uint64_t) + sizeof(uint16_t) * 2 +
+            sizeof(this->password)) * 2 + teacherDataSize, ios::beg);
 
         // Tìm sinh viên bằng id
         while (!volumeFile.eof()) {
@@ -451,13 +470,13 @@ void VolumeSys::DeleteTeacherPermanently(string fileName, const char* teacherId)
     if (volumeFile.is_open()) {
         // Tính offset kết thúc dữ liệu hiện có của giáo viên
         // Offset được tính dựa trên số phần tử giáo viên
-        volumeFile.seekg(sizeof(uint64_t) + sizeof(uint16_t) * 2
-            + sizeof(this->password) + sizeof(Teacher) * this->ArrTeacherSize, ios::beg);
+        volumeFile.seekg((sizeof(uint64_t) + sizeof(uint16_t) * 2
+            + sizeof(this->password))*2 + sizeof(Teacher) * this->ArrTeacherSize, ios::beg);
         streampos endPos = volumeFile.tellg();
 
         // Di chuyển đến offset bắt đầu vùng thông tin giáo viên
-        volumeFile.seekg(sizeof(uint64_t) + sizeof(uint16_t) * 2
-            + sizeof(this->password), ios::beg);
+        volumeFile.seekg((sizeof(uint64_t) + sizeof(uint16_t) * 2
+            + sizeof(this->password))*2, ios::beg);
         streampos currentPos = volumeFile.tellg();
 
         // Đọc thông tin từng giáo viên
