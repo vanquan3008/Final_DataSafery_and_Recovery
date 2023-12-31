@@ -6,7 +6,7 @@ bool createVolume(const string& volumeName, uint64_t volumeSize) {
     if (checkFile.is_open())
     {
         checkFile.close();
-        cout << "Volume '" << volumeName << "' đã tồn tại." << endl;
+        cout << "File '" << volumeName << "' is already existed." << endl;
         return false;
     }
     //// Tạo volume rỗng với elements value 0
@@ -20,14 +20,14 @@ bool createVolume(const string& volumeName, uint64_t volumeSize) {
         {
             volumeFile.write(&emptyByte, sizeof(char));
         }
-        cout << "Volume " << volumeName << " được tạo thành công." << endl;
+        cout << "File " << volumeName << " is created successfully." << endl;
 
         volumeFile.close();
         return true;
     }
     else
     {
-        cout << "Không thể tạo volume." << endl;
+        cout << "Cannot create this file." << endl;
         return false;
     }
 }
@@ -38,10 +38,10 @@ void formatVolume(const string& volumeName, VolumeSys& vls) {
 
     if (volumeFile.is_open()) {
         string checkfile;
-        string password;
+        string password = "";
 
         while (true) {
-            cout << "Do you want to set Password to file(Yes/No) : ";
+            cout << "Do you want to set Password to file (Yes/No): ";
             cin >> checkfile;
             if (checkfile == "Yes" || checkfile == "No") {
                 break;
@@ -52,21 +52,20 @@ void formatVolume(const string& volumeName, VolumeSys& vls) {
 
         }
         if (checkfile == "Yes") {
-            cout << "Password : ";
+            cout << "Password: ";
             cin >> password;
+            vls.setPassword(password);
         }
-        vls.setPassword(password);
 
         volumeFile.seekp(0, ios::beg);
         vls.WriteVolume(volumeFile);
-
         
-        cout << "File '" << volumeName << "' được định dạng thành công." << endl;
+        cout << "File '" << volumeName << "' is formatted successfully." << endl;
         volumeFile.close();
     }
     else
     {
-        cout << "Không thể mở volume/ volume không tồn tại." << endl;
+        cout << "Cannot find this file." << endl;
     }
 }
 
@@ -80,9 +79,11 @@ bool OpenVolume(const string& volumeName, uint64_t VolumeSize) {
     int maxAttempts = 5; // Số lần nhập sai tối đa
     int currentAttempts = 0; // Số lần nhập sai hiện tại
     int waitTime = 5; // Thời gian đợi ban đầu sau lần nhập sai đầu (5 giây)
-    if (vls.getPass() == "") {
+
+    if (strcmp(vls.getPass(), "") == 0) {
         return true;
     }
+
     while (currentAttempts < maxAttempts) {
         string inputPassword;
         cout << "Input Password: ";
@@ -113,12 +114,11 @@ bool OpenVolume(const string& volumeName, uint64_t VolumeSize) {
     }
 }
 
-
 void changePass(string& filename) {
     
     VolumeSys vls ;
     string oldPass;
-    cout << "Input old pass : ";
+    cout << "Enter current password: ";
     cin >> oldPass;
     vls.ReadVolume(filename);
 
@@ -126,19 +126,16 @@ void changePass(string& filename) {
     string newpass;
     if (checkPassword(oldPass, vls.getPass())) {
         //Check pass cu
-        cout << "Input new Pass can change : ";
+        cout << "Enter new password: ";
         cin >> newpass;
-        ofstream f(filename);
         vls.setPassword(newpass);
-        f.seekp(0, ios::beg);
-        vls.WriteVolume(f);
-        cout << "Change password sucessfully." << endl;
+        vls.UpdatePassword(filename);
+        cout << "Change password successfully." << endl;
     }
     else {
-        cout << "Your old password is incorrect ." << endl;
+        cout << "The current password is incorrect." << endl;
     }
 }
-
 
 void resetPass(string& filename) {
     srand(time(NULL));
@@ -151,7 +148,7 @@ void resetPass(string& filename) {
         cout << "Input number(Input 0 to exits resetpass) : ";
         cin >> numbercheck;
         if (numbercheck == numbergacha) {
-            cout << "Verify success fully";
+            cout << "Verify successfully." << endl;
             break;
         }
         if (numbercheck == 0) {
@@ -164,12 +161,8 @@ void resetPass(string& filename) {
     VolumeSys vls;
     ofstream f(filename);
     vls.ReadVolume(filename);
-    // Set pass "0000"
-    cout << "Password reset to 0000 ." << endl;
-    vls.setPassword("0000");
+    vls.ResetPassword();
+    vls.UpdatePassword(filename);
 
-    // Read volume sys
-    f.seekp(0, ios::beg);
-    vls.WriteVolume(f);
-    cout << "Password reset sucessfully ." << endl;
+    cout << "Password reset successfully." << endl;
 }

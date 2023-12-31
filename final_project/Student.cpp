@@ -1,21 +1,31 @@
 #include "Student.h"
 
 void Student::InputStudent() {
-	cout << "Nhập id:" << endl;
+	string phone = "";
+	string cccd = "";
+	Crypto crypto;
+
+	cout << "Input ID:" << endl;
 	cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	cin.getline(this->id, sizeof(this->id));
 	
-	cout << "Nhập tên:" << endl;
+	cout << "Input Name:" << endl;
 	cin.getline(this->name, sizeof(this->name));
 
-	cout << "Nhập tuổi:" << endl;
+	cout << "Input Age:" << endl;
 	cin.getline(this->age, sizeof(this->age));
 
-	cout << "Nhập số điện thoại:" << endl;
-	cin.getline(this->phone, sizeof(this->phone));
+	cout << "Input Phone Number:" << endl;
+	cin >> phone;
+	//cin.getline(this->phone, sizeof(this->phone));
+	string hashPhone = crypto.aesEncrypt(phone);
+	strcpy(this->phone, hashPhone.c_str());
 
-	cout << "Nhập cccd:" << endl;
-	cin.getline(this->cccd, sizeof(this->cccd));
+	cout << "Inpute Citizen Identity Card:" << endl;
+	cin >> cccd;
+	//cin.getline(this->cccd, sizeof(this->cccd));
+	string hashCCCD = crypto.aesEncrypt(cccd);
+	strcpy(this->cccd, hashCCCD.c_str());
 	
 	this->isDeleted = false;
 }
